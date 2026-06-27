@@ -1012,7 +1012,14 @@ window.addEventListener('resize', resizeCanvas);
 
 function drawFrame(i) {
   if (!frames[i]) return;
-  ctx.drawImage(frames[i], 0, 0, canvas.width, canvas.height);
+  const img = frames[i];
+  const cw = canvas.width, ch = canvas.height;
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const scale = Math.max(cw / iw, ch / ih);
+  const sw = iw * scale, sh = ih * scale;
+  const ox = (cw - sw) / 2, oy = (ch - sh) / 2;
+  ctx.clearRect(0, 0, cw, ch);
+  ctx.drawImage(img, ox, oy, sw, sh);
   currentFrame = i;
 }
 
