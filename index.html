@@ -971,22 +971,34 @@ window.AIRMATE_WIDGET_CONFIG.onReservation = function(data) {
   if(typeof emailjs!=='undefined'){
     const wNombre = data.nombre||data.name||'Huésped';
     const wEmail = data.email||null;
-    emailjs.send('service_npmjvvf','template_6arpdfi',{
+    emailjs.send('service_ns3b7dd','template_6arpdfi',{
       cliente_email:'delmartraviesas@gmail.com',
-      cliente_nombre:'Magda',
+      name:'Bungalow Punta del Hidalgo',
       reply_to: wEmail||'no-reply@puntahidalgobungalow.com',
-      asunto:'🏠 Nueva solicitud via Widget — '+wNombre,
-      notes:'Nueva solicitud via Widget IA\n\nHuésped: '+wNombre+'\nTeléfono: '+(data.telefono||data.phone||'—')+'\nEmail: '+(wEmail||'—')+'\nLlegada: '+(data.entrada||data.checkin||'—')+'\nSalida: '+(data.salida||data.checkout||'—'),
-      business_name:'Bungalow Punta del Hidalgo'
+      client_name: wNombre,
+      client_phone: data.telefono||data.phone||'—',
+      client_email: wEmail||'No indicado',
+      start_date: data.entrada||data.checkin||'—',
+      end_date: data.salida||data.checkout||'—',
+      nights: '—',
+      guests: data.personas||data.guests||'—',
+      language: data.idioma||'—',
+      total: '—'
     }).catch(function(){});
     if(wEmail){
-      emailjs.send('service_npmjvvf','template_6arpdfi',{
-        cliente_email:wEmail,
-        cliente_nombre:wNombre,
+      emailjs.send('service_ns3b7dd','template_6arpdfi',{
+        cliente_email: wEmail,
+        name:'Bungalow Punta del Hidalgo',
         reply_to:'delmartraviesas@gmail.com',
-        asunto:'✅ Solicitud recibida — Bungalow Punta del Hidalgo',
-        notes:'Hola '+wNombre+',\n\nHemos recibido tu solicitud de reserva. Te confirmaremos en breve.\n\nLlegada: '+(data.entrada||data.checkin||'—')+'\nSalida: '+(data.salida||data.checkout||'—')+'\n\nMagda 🌴',
-        business_name:'Bungalow Punta del Hidalgo'
+        client_name: wNombre,
+        client_phone: data.telefono||data.phone||'—',
+        client_email: wEmail,
+        start_date: data.entrada||data.checkin||'—',
+        end_date: data.salida||data.checkout||'—',
+        nights: '—',
+        guests: data.personas||data.guests||'—',
+        language: data.idioma||'—',
+        total: '—'
       }).catch(function(){});
     }
   }
@@ -1238,23 +1250,35 @@ async function submitBooking() {
   // Enviar email de notificación a Magda
   const noches2 = salida ? Math.round((new Date(salida)-new Date(entrada))/86400000) : 0;
   const msgBody = `Nueva reserva Bungalow Punta del Hidalgo\n\nHuésped: ${nombre}\nTeléfono: ${tel}\nEmail: ${email||'No indicado'}\nLlegada: ${entrada}\nSalida: ${salida||'No indicada'}\nNoches: ${noches2}\nPersonas: ${personas}\nIdioma: ${idioma}\nComentarios: ${notas||'Ninguno'}\nImporte aprox: ${importe?importe.toLocaleString('es-ES')+'€':'Por confirmar'}`;
-  emailjs.send('service_npmjvvf', 'template_6arpdfi', {
+  emailjs.send('service_ns3b7dd', 'template_6arpdfi', {
     cliente_email: 'delmartraviesas@gmail.com',
-    cliente_nombre: 'Magda',
+    name: 'Bungalow Punta del Hidalgo',
     reply_to: email || 'no-reply@puntahidalgobungalow.com',
-    asunto: `🏠 Nueva solicitud de reserva — ${nombre}`,
-    notes: msgBody,
-    business_name: 'Bungalow Punta del Hidalgo'
+    client_name: nombre,
+    client_phone: tel,
+    client_email: email || 'No indicado',
+    start_date: entrada,
+    end_date: salida || 'Por confirmar',
+    nights: noches2 || '—',
+    guests: personas,
+    language: idioma,
+    total: importe ? importe.toLocaleString('es-ES') + '€' : 'Por confirmar'
   }).catch(() => {});
   // Enviar confirmación al huésped si tiene email
   if(email) {
-    emailjs.send('service_npmjvvf', 'template_6arpdfi', {
+    emailjs.send('service_ns3b7dd', 'template_6arpdfi', {
       cliente_email: email,
-      cliente_nombre: nombre,
+      name: 'Bungalow Punta del Hidalgo',
       reply_to: 'delmartraviesas@gmail.com',
-      asunto: '✅ Hemos recibido tu solicitud — Bungalow Punta del Hidalgo',
-      notes: `Hola ${nombre},\n\nHemos recibido tu solicitud de reserva para el Bungalow Punta del Hidalgo. 🌊\n\n📅 Llegada: ${entrada}\n📅 Salida: ${salida||'Por confirmar'}\n🌙 Noches: ${noches2||'—'}\n👥 Personas: ${personas}\n💶 Importe aprox: ${importe?importe.toLocaleString('es-ES')+'€':'Por confirmar'}\n\nRevisaré tu solicitud en breve y te confirmaré. Cualquier pregunta, escríbeme por WhatsApp.\n\n¡Hasta pronto!\nMagda 🌴`,
-      business_name: 'Bungalow Punta del Hidalgo'
+      client_name: nombre,
+      client_phone: tel,
+      client_email: email,
+      start_date: entrada,
+      end_date: salida || 'Por confirmar',
+      nights: noches2 || '—',
+      guests: personas,
+      language: idioma,
+      total: importe ? importe.toLocaleString('es-ES') + '€' : 'Por confirmar'
     }).catch(() => {});
   }
 
