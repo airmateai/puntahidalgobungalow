@@ -58,7 +58,7 @@ nav.scrolled .nav-cta{background:var(--verde)!important;color:#fff!important;}
 
 /* ── HERO SCROLL-DRIVEN VIDEO ── */
 #hero{position:relative;height:100vh;min-height:580px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;}
-#hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.45) 45%,rgba(0,0,0,.15) 75%,rgba(0,0,0,.35) 100%);z-index:1;}
 
 /* Scroll hint */
@@ -382,7 +382,7 @@ footer{background:#1a2e1a;color:rgba(255,255,255,.45);padding:36px 0;}
 
 <!-- HERO -->
 <section id="hero">
-  <video id="hero-video" src="magda_tour.mp4" muted playsinline preload="auto"></video>
+  <canvas id="hero-canvas"></canvas>
   <div class="hero-overlay"></div>
   <div class="scroll-hint">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
@@ -992,58 +992,80 @@ const SLUG = 'magda-punta-hidalgo';
 const PRECIO_NOCHE = 80;
 const MIN_NOCHES = 1;
 
-// ── HERO SCROLL-DRIVEN VIDEO ────────────────────────────
-const heroVideo = document.getElementById('hero-video');
-heroVideo.load();
-
+// ── HERO FRAME SEQUENCE (estilo Apple) ────────────────────────────
+const TOTAL_FRAMES = 202;
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+const frames = [];
+let loadedCount = 0;
+let currentFrame = 0;
+let targetFrame = 0;
 let videoLocked = true;
-let targetTime = 0;
-let rafId = null;
 
-function rafLoop() {
-  if (!heroVideo.duration) { rafId = requestAnimationFrame(rafLoop); return; }
-  const clamped = Math.max(0, Math.min(heroVideo.duration, targetTime));
-  targetTime = clamped;
-  const diff = clamped - heroVideo.currentTime;
-  if (Math.abs(diff) > 0.01) {
-    heroVideo.currentTime += diff * 0.18; // lerp suave
-  }
-  rafId = requestAnimationFrame(rafLoop);
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  if (frames[currentFrame]) drawFrame(currentFrame);
 }
-rafId = requestAnimationFrame(rafLoop);
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
+function drawFrame(i) {
+  if (!frames[i]) return;
+  ctx.drawImage(frames[i], 0, 0, canvas.width, canvas.height);
+  currentFrame = i;
+}
+
+// Cargar frames — primero el 1, luego todos
+function loadFrame(i) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const n = String(i).padStart(4,'0');
+    img.src = `frames/frame_${n}.jpg`;
+    img.onload = () => { frames[i] = img; loadedCount++; resolve(); };
+    img.onerror = resolve;
+  });
+}
+
+// Cargar frame 1 inmediato, luego el resto
+loadFrame(1).then(() => drawFrame(1));
+for (let i = 2; i <= TOTAL_FRAMES; i++) loadFrame(i);
+
+// RAF loop — lerp suave entre frames
+(function loop() {
+  requestAnimationFrame(loop);
+  if (Math.abs(targetFrame - currentFrame) < 0.5) return;
+  const next = Math.round(currentFrame + (targetFrame - currentFrame) * 0.15);
+  if (frames[next]) drawFrame(next);
+})();
+
+// Wheel
 window.addEventListener('wheel', (e) => {
   if (!videoLocked) return;
   e.preventDefault();
-  targetTime += e.deltaY * 0.006;
-  if (targetTime >= (heroVideo.duration || 999) - 0.1) {
-    targetTime = heroVideo.duration;
+  targetFrame = Math.max(1, Math.min(TOTAL_FRAMES, targetFrame + e.deltaY * 0.25));
+  if (e.deltaY > 0 && targetFrame >= TOTAL_FRAMES - 2) {
     videoLocked = false;
-    cancelAnimationFrame(rafId);
   }
 }, {passive: false});
 
+// Touch
 let touchStartY = 0;
 window.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, {passive: true});
 window.addEventListener('touchmove', (e) => {
   if (!videoLocked) return;
   e.preventDefault();
   const dy = touchStartY - e.touches[0].clientY;
-  targetTime += dy * 0.009;
+  targetFrame = Math.max(1, Math.min(TOTAL_FRAMES, targetFrame + dy * 0.4));
   touchStartY = e.touches[0].clientY;
-  if (targetTime >= (heroVideo.duration || 999) - 0.1) {
-    targetTime = heroVideo.duration;
-    videoLocked = false;
-    cancelAnimationFrame(rafId);
-  }
+  if (dy > 0 && targetFrame >= TOTAL_FRAMES - 2) videoLocked = false;
 }, {passive: false});
 
+// Scroll hacia arriba → re-enganche
 window.addEventListener('scroll', () => {
   if (!videoLocked && window.scrollY === 0) {
     videoLocked = true;
-    targetTime = 0;
-    heroVideo.currentTime = 0;
-    rafId = requestAnimationFrame(rafLoop);
+    targetFrame = 1;
   }
 }, {passive: true});
 
