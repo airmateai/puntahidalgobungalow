@@ -997,44 +997,54 @@ const MIN_NOCHES = 1;
 const heroVideo = document.getElementById('hero-video');
 heroVideo.load();
 
-let videoLocked = true; // true = scroll controla el vídeo, false = scroll normal
+let videoLocked = true;
+let targetTime = 0;
+let rafId = null;
 
-// Interceptar rueda del ratón
+function rafLoop() {
+  if (!heroVideo.duration) { rafId = requestAnimationFrame(rafLoop); return; }
+  const clamped = Math.max(0, Math.min(heroVideo.duration, targetTime));
+  targetTime = clamped;
+  const diff = clamped - heroVideo.currentTime;
+  if (Math.abs(diff) > 0.01) {
+    heroVideo.currentTime += diff * 0.18; // lerp suave
+  }
+  rafId = requestAnimationFrame(rafLoop);
+}
+rafId = requestAnimationFrame(rafLoop);
+
 window.addEventListener('wheel', (e) => {
   if (!videoLocked) return;
   e.preventDefault();
-
-  const speed = 0.008;
-  const delta = e.deltaY * speed;
-  const newTime = Math.max(0, Math.min(heroVideo.duration || 0, heroVideo.currentTime + delta));
-  heroVideo.currentTime = newTime;
-
-  // Si llegó al final → desbloquear scroll normal
-  if (delta > 0 && heroVideo.currentTime >= (heroVideo.duration - 0.05)) {
+  targetTime += e.deltaY * 0.006;
+  if (targetTime >= (heroVideo.duration || 999) - 0.1) {
+    targetTime = heroVideo.duration;
     videoLocked = false;
+    cancelAnimationFrame(rafId);
   }
 }, {passive: false});
 
-// Touch para móvil
 let touchStartY = 0;
 window.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, {passive: true});
 window.addEventListener('touchmove', (e) => {
   if (!videoLocked) return;
   e.preventDefault();
   const dy = touchStartY - e.touches[0].clientY;
-  const newTime = Math.max(0, Math.min(heroVideo.duration || 0, heroVideo.currentTime + dy * 0.012));
-  heroVideo.currentTime = newTime;
+  targetTime += dy * 0.009;
   touchStartY = e.touches[0].clientY;
-  if (dy > 0 && heroVideo.currentTime >= (heroVideo.duration - 0.05)) {
+  if (targetTime >= (heroVideo.duration || 999) - 0.1) {
+    targetTime = heroVideo.duration;
     videoLocked = false;
+    cancelAnimationFrame(rafId);
   }
 }, {passive: false});
 
-// Si el usuario sube de vuelta al top → re-enganchamos el vídeo
 window.addEventListener('scroll', () => {
   if (!videoLocked && window.scrollY === 0) {
     videoLocked = true;
+    targetTime = 0;
     heroVideo.currentTime = 0;
+    rafId = requestAnimationFrame(rafLoop);
   }
 }, {passive: true});
 
