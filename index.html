@@ -1220,7 +1220,7 @@ async function submitBooking() {
   if (!telOk) { alert('El teléfono no parece válido'); return; }
   const noches = salida ? Math.round((new Date(salida)-new Date(entrada))/86400000) : 0;
   const importe = noches * PRECIO_NOCHE;
-  const notasCompletas = `importe:${importe} personas:${personas} origen:directo idioma:${idioma} tel:${tel} ${notas}`;
+  const notasCompletas = `importe:${importe}|personas:${personas}|canal:directo|notas:idioma:${idioma} tel:${tel}${notas?' '+notas:''}`;
   // Guardar en Supabase
   await fetch(`${SUPABASE_URL}/rest/v1/appointments`, {
     method:'POST',
