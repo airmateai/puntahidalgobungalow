@@ -970,57 +970,6 @@ footer{background:#1a2e1a;color:rgba(255,255,255,.45);padding:36px 0;}
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>emailjs.init('i4iBVVP-BkUOOwBE9');</script>
 
-<!-- Configuración del widget para aceptar reservas -->
-<script>
-window.AIRMATE_WIDGET_CONFIG = window.AIRMATE_WIDGET_CONFIG || {};
-window.AIRMATE_WIDGET_CONFIG.onReservation = function(data) {
-  // Cuando el widget captura una reserva, la guarda y manda email igual que el formulario
-  const SUPABASE_URL = 'https://vjofxmfwdybktpwiuanc.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqb2Z4bWZ3ZHlia3Rwd2l1YW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NzU5NDYsImV4cCI6MjA5MDA1MTk0Nn0.ixU-33c0FEkO7F5xjWb3YHkvj_pQuR0gsJETrGA8ZTE';
-  fetch(SUPABASE_URL+'/rest/v1/appointments',{
-    method:'POST',
-    headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
-    body:JSON.stringify({business_slug:'magda-punta-hidalgo',client_name:data.nombre||data.name||'Huésped widget',starts_at:data.entrada||data.checkin||new Date().toISOString().slice(0,10),ends_at:data.salida||data.checkout||null,status:'pendiente',service:'Estancia bungalow',duration_minutes:0,notes:'Via widget IA · '+JSON.stringify(data).slice(0,300)})
-  });
-  if(typeof emailjs!=='undefined'){
-    const wNombre = data.nombre||data.name||'Huésped';
-    const wEmail = data.email||null;
-    emailjs.send('service_ns3b7dd','template_6arpdfi',{
-      cliente_email:'airmateai@gmail.com',
-      name:'Bungalow Punta del Hidalgo',
-      reply_to: wEmail||'no-reply@puntahidalgobungalow.com',
-      client_name: wNombre,
-      client_phone: data.telefono||data.phone||'—',
-      client_email: wEmail||'No indicado',
-      start_date: data.entrada||data.checkin||'—',
-      end_date: data.salida||data.checkout||'—',
-      nights: '—',
-      guests: data.personas||data.guests||'—',
-      language: data.idioma||'—',
-      total: '—'
-    }).catch(function(){});
-    if(wEmail){
-      emailjs.send('service_ns3b7dd','template_6arpdfi',{
-        cliente_email: wEmail,
-        name:'Bungalow Punta del Hidalgo',
-        reply_to:'airmateai@gmail.com',
-        client_name: wNombre,
-        client_phone: data.telefono||data.phone||'—',
-        client_email: wEmail,
-        start_date: data.entrada||data.checkin||'—',
-        end_date: data.salida||data.checkout||'—',
-        nights: '—',
-        guests: data.personas||data.guests||'—',
-        language: data.idioma||'—',
-        total: '—'
-      }).catch(function(){});
-    }
-  }
-};
-</script>
-
-<!-- WIDGET IA -->
-<script src="https://airmate.es/magda-widget.js?v=1781947979" defer></script>
 
 <script>
 const SUPABASE_URL = 'https://vjofxmfwdybktpwiuanc.supabase.co';
@@ -1210,7 +1159,9 @@ function openBookingModal() {
     document.getElementById('m-entrada').value = e;
     const noches = s ? Math.round((new Date(s)-new Date(e))/86400000) : 0;
     if (noches > 0) {
-      updateModalSummary(e, s, noches, noches*PRECIO_NOCHE, document.getElementById('bf-personas-sel').value);
+      const mesModal = new Date(e).getMonth()+1;
+  const precioModal = (mesModal>=6&&mesModal<=9) ? 125 : PRECIO_NOCHE;
+  updateModalSummary(e, s, noches, noches*precioModal, document.getElementById('bf-personas-sel').value);
     }
   }
   if (s) document.getElementById('m-salida').value = s;
@@ -1245,7 +1196,9 @@ async function submitBooking() {
   if (!emailOk) { alert('El email no parece válido'); return; }
   if (!telOk) { alert('El teléfono no parece válido'); return; }
   const noches = salida ? Math.round((new Date(salida)-new Date(entrada))/86400000) : 0;
-  const importe = noches * PRECIO_NOCHE;
+  const mesEnvio = new Date(entrada).getMonth()+1;
+  const precioEnvio = (mesEnvio>=6&&mesEnvio<=9) ? 125 : PRECIO_NOCHE;
+  const importe = noches * precioEnvio;
   const notasCompletas = `importe:${importe}|personas:${personas}|canal:directo|notas:idioma:${idioma} tel:${tel}${notas?' '+notas:''}`;
   // Guardar en Supabase
   await fetch(`${SUPABASE_URL}/rest/v1/appointments`, {
