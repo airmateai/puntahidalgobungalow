@@ -1218,7 +1218,7 @@ async function submitBooking() {
   const noches2 = salida ? Math.round((new Date(salida)-new Date(entrada))/86400000) : 0;
   const msgBody = `Nueva reserva Bungalow Punta del Hidalgo\n\nHuésped: ${nombre}\nTeléfono: ${tel}\nEmail: ${email||'No indicado'}\nLlegada: ${entrada}\nSalida: ${salida||'No indicada'}\nNoches: ${noches2}\nPersonas: ${personas}\nIdioma: ${idioma}\nComentarios: ${notas||'Ninguno'}\nImporte aprox: ${importe?importe.toLocaleString('es-ES')+'€':'Por confirmar'}`;
   emailjs.send('service_ns3b7dd', 'template_6arpdfi', {
-    cliente_email: 'airmateai@gmail.com',
+    cliente_email: 'delmartraviesas@gmail.com',
     name: 'Bungalow Punta del Hidalgo',
     reply_to: email || 'no-reply@puntahidalgobungalow.com',
     client_name: nombre,
@@ -1236,7 +1236,7 @@ async function submitBooking() {
     emailjs.send('service_ns3b7dd', 'template_6arpdfi', {
       cliente_email: email,
       name: 'Bungalow Punta del Hidalgo',
-      reply_to: 'airmateai@gmail.com',
+      reply_to: 'delmartraviesas@gmail.com',
       client_name: nombre,
       client_phone: tel,
       client_email: email,
