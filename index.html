@@ -373,6 +373,15 @@ footer{background:#1a2e1a;color:rgba(255,255,255,.45);padding:36px 0;}
 .ubicacion-bullet strong{color:#fff;margin-right:4px;}
 .ubicacion-map{border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.25);}
 .ubicacion-map iframe{display:block;width:100%;height:380px;border:none;filter:saturate(.8);}
+/* ── FLATPICKR CUSTOM ── */
+.flatpickr-calendar{font-family:'Inter',sans-serif;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.18);border:none;overflow:hidden;}
+.flatpickr-day.selected,.flatpickr-day.startRange,.flatpickr-day.endRange{background:var(--verde)!important;border-color:var(--verde)!important;color:#fff!important;}
+.flatpickr-day.inRange{background:rgba(45,74,45,.12)!important;border-color:transparent!important;}
+.flatpickr-day:hover{background:rgba(45,74,45,.15);}
+.flatpickr-months .flatpickr-month{background:var(--verde);color:#fff;padding:8px 0;}
+.flatpickr-current-month .flatpickr-monthDropdown-months,.flatpickr-current-month input.cur-year{color:#fff;}
+.flatpickr-weekday{color:rgba(45,74,45,.6);font-weight:600;}
+.flatpickr-day.today{border-color:var(--verde);}
 </style>
 </head>
 <body>
@@ -418,15 +427,15 @@ footer{background:#1a2e1a;color:rgba(255,255,255,.45);padding:36px 0;}
 <!-- BOOKING BAR -->
 <div id="booking-bar">
   <div class="booking-form">
-    <div class="booking-field">
+    <div class="booking-field" id="field-entrada">
       <div class="bf-label">Llegada</div>
       <div class="bf-value" id="bf-entrada-val"><span class="bf-placeholder">Selecciona fecha</span></div>
-      <input type="date" id="bf-entrada" onchange="updateBookingBar()">
+      <input type="text" id="bf-entrada" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" readonly>
     </div>
-    <div class="booking-field">
+    <div class="booking-field" id="field-salida">
       <div class="bf-label">Salida</div>
       <div class="bf-value" id="bf-salida-val"><span class="bf-placeholder">Selecciona fecha</span></div>
-      <input type="date" id="bf-salida" onchange="updateBookingBar()">
+      <input type="text" id="bf-salida" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" readonly>
     </div>
     <div class="booking-field" onclick="document.getElementById('bf-personas-sel').focus()">
       <div class="bf-label">Viajeros</div>
@@ -952,6 +961,11 @@ footer{background:#1a2e1a;color:rgba(255,255,255,.45);padding:36px 0;}
   </div>
 </div>
 
+<!-- FLATPICKR -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
 <!-- EMAILJS -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>emailjs.init('i4iBVVP-BkUOOwBE9');</script>
@@ -1470,6 +1484,53 @@ document.querySelectorAll('.gallery-item img, .j-photo-main img, .j-photo-second
   parent.addEventListener('mouseleave', () => img.style.transform = '');
   img.style.transition = 'transform .7s cubic-bezier(.16,1,.3,1)';
 });
+</script>
+
+<!-- FLATPICKR INIT -->
+<script>
+flatpickr.localize(flatpickr.l10ns.es);
+const today = new Date();
+today.setHours(0,0,0,0);
+
+const fpEntrada = flatpickr('#bf-entrada', {
+  locale: 'es',
+  dateFormat: 'Y-m-d',
+  altInput: false,
+  minDate: today,
+  disableMobile: true,
+  appendTo: document.getElementById('field-entrada'),
+  onChange(sel, dateStr) {
+    const ev = document.getElementById('bf-entrada-val');
+    ev.innerHTML = sel[0] ? fmtDateShort(dateStr) : '<span class="bf-placeholder">Selecciona fecha</span>';
+    // mover mínimo de salida al día siguiente
+    const next = new Date(sel[0]);
+    next.setDate(next.getDate()+1);
+    fpSalida.set('minDate', next);
+    if(fpSalida.selectedDates[0] && fpSalida.selectedDates[0] <= sel[0]) {
+      fpSalida.clear();
+      document.getElementById('bf-salida-val').innerHTML = '<span class="bf-placeholder">Selecciona fecha</span>';
+    }
+    updateBookingBar();
+  }
+});
+
+const fpSalida = flatpickr('#bf-salida', {
+  locale: 'es',
+  dateFormat: 'Y-m-d',
+  altInput: false,
+  minDate: new Date(today.getTime() + 86400000),
+  disableMobile: true,
+  appendTo: document.getElementById('field-salida'),
+  onChange(sel, dateStr) {
+    const sv = document.getElementById('bf-salida-val');
+    sv.innerHTML = sel[0] ? fmtDateShort(dateStr) : '<span class="bf-placeholder">Selecciona fecha</span>';
+    updateBookingBar();
+  }
+});
+
+// abrir flatpickr al hacer clic en el campo entero
+document.getElementById('field-entrada').addEventListener('click', () => fpEntrada.open());
+document.getElementById('field-salida').addEventListener('click', () => fpSalida.open());
 </script>
 </body>
 </html>
