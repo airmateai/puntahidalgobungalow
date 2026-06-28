@@ -1495,14 +1495,11 @@ today.setHours(0,0,0,0);
 const fpEntrada = flatpickr('#bf-entrada', {
   locale: 'es',
   dateFormat: 'Y-m-d',
-  altInput: false,
   minDate: today,
-  disableMobile: true,
-  appendTo: document.getElementById('field-entrada'),
+  disableMobile: false,
   onChange(sel, dateStr) {
     const ev = document.getElementById('bf-entrada-val');
     ev.innerHTML = sel[0] ? fmtDateShort(dateStr) : '<span class="bf-placeholder">Selecciona fecha</span>';
-    // mover mínimo de salida al día siguiente
     const next = new Date(sel[0]);
     next.setDate(next.getDate()+1);
     fpSalida.set('minDate', next);
@@ -1517,10 +1514,8 @@ const fpEntrada = flatpickr('#bf-entrada', {
 const fpSalida = flatpickr('#bf-salida', {
   locale: 'es',
   dateFormat: 'Y-m-d',
-  altInput: false,
   minDate: new Date(today.getTime() + 86400000),
-  disableMobile: true,
-  appendTo: document.getElementById('field-salida'),
+  disableMobile: false,
   onChange(sel, dateStr) {
     const sv = document.getElementById('bf-salida-val');
     sv.innerHTML = sel[0] ? fmtDateShort(dateStr) : '<span class="bf-placeholder">Selecciona fecha</span>';
